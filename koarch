@@ -178,7 +178,6 @@ then
 fi
 if [[ "$useri" == "13" ]]
 then
-	pacman -S sudo
     pacman -S xf86-video-vesa
     pacman -S xf86-video-intel
     graphty=$(dialog --inputbox "Do you have an AMD(a) or a NVIDIA(n)?[a/n]" 0 0 4 3>&1 1>&2 2>&3 3>&-)
