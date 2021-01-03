@@ -100,7 +100,7 @@ then
     hwclock --systohc
     touch /etc/locale.conf
     echo "LANG=en_US.UTF-8" > /etc/locale.conf
-    pacman -S nano
+    pacman -S sudo
     pacman -S networkmanager
     systemctl enable NetworkManager
     echo en_US.UTF-8 UTF-8 >> /etc/locale.gen
