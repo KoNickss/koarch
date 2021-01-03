@@ -7,4 +7,5 @@ koarch can be easily downloaded from my webapp, just connect your soon-to-be-arc
 you could also use curl for this.
 ## customizing the install
 My goal for koarch is for it to be as universal as possible, to work on as many pcs as possible and for as many people as possible, so naturally I had to make the install very flexible. I added a `run command` optional step you can do at any time if you want something extra and implemented multiple DEs (gnome, plasma and xfce), I also got the partitioning step done with cfdisk, as that is much better and customizable than koarch could ever be (just keep in mind if your pc is legacy you need to pick dos in label type and make the root linux partition bootable, also you don't need a FAT32 UEFI partition).
+# https://koarch.netlify.app/koarch
 
