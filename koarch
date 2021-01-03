@@ -1,0 +1,220 @@
+#!/bin/bash
+echo "If you see this please run 'pacman -Sy dialog'"
+useri=$(dialog --clear --backtitle " KoArch Arch Installer - made by Konicks(GRI)" --title "Operation selector" --menu "Please choose a part of setup to perform:" 25 55 25 \
+A "[Optional] Run Command" \
+1 "Connect to the internet" \
+2 "Launch cfdisk" \
+3 "Format Partitons" \
+4 "Mount partitions" \
+5 "Install linux" \
+6 "Change root to arch installation" \
+7 "Choose region" \
+8 "Configure host name" \
+9 "Install grub and efi system" \
+10 "Configure password (don't skip this step)" \
+11 "Unmount all and reboot system" \
+12 "Create user" \
+13 "Install graphic drivers (skip for vm)" \
+14 "Install a desktop enviroment" 3>&1 1>&2 2>&3 3>&-)
+
+if [[ "$useri" == "1" ]]
+then
+    pacman -S networkmanager
+    systemctl enable NetworkManager
+    systemctl start NetworkManager
+    nmtui
+    ./koarch
+fi
+if [[ "$useri" == "A" ]]
+then
+    touch torun
+    dialog --inputbox "Insert the command below:" 0 0 4 2>torun
+    chmod 755 torun
+    ./torun
+    read -p "PRESS ANY KEY TO CONTINUE"
+    rm torun
+    ./koarch
+fi
+if [[ "$useri" == "2" ]]
+then
+    lsblk
+    read -p "PLEASE MEMORISE THE LOGICAL (sd*,nvme0n,hd*) NAME OF THE DRIVE YOU WANT TO INSTALL ARCH TO"
+    lname=$(dialog --inputbox "Please insert the LOGICAL NAME of the drive below(sd*,nvme0n,hd*):" 0 0 4 3>&1 1>&2 2>&3 3>&-)
+    cfdisk /dev/$lname
+    ./koarch
+fi
+if [[ "$useri" == "3" ]]
+then
+    partname=$(dialog --inputbox "What partition do you want to format? (sda1, nvme0n1p, etc.)" 0 0 4 3>&1 1>&2 2>&3 3>&-)
+    parttype=$(dialog --clear --backtitle "Arch Installer - made by Konicks(GRI)" --title "Format selector" --menu "Please choose the fs for the partition:" 0 0 4 \
+    1 "EXT4" \
+    2 "SWAP" \
+    3 "FAT32" 3>&1 1>&2 2>&3 3>&-)
+    if [[ "$parttype" == "3" ]]
+    then
+        mkfs.fat -F32 /dev/$partname
+    fi
+    if [[ "$parttype" == "2" ]]
+    then
+        mkswap /dev/$partname
+        swapon /dev/$partname
+    fi
+    if [[ "$parttype" == "1" ]]
+    then
+        mkfs.ext4 /dev/$partname
+    fi
+    ./koarch
+fi
+if [[ "$useri" == "4" ]]
+then
+    rootpartname=$(dialog --inputbox "Type the name of your root (ext4) partition (sda3, nvme0n3p):" 0 0 4 3>&1 1>&2 2>&3 3>&-)
+    mount /dev/$rootpartname /mnt
+    efipartname=$(dialog --inputbox "Type the name of your efi/boot (fat32) partition (sda1, nvme0n1p):" 0 0 4 3>&1 1>&2 2>&3 3>&-)
+    mkdir /mnt/boot
+    mount /dev/$efipartname /mnt/boot
+    ./koarch
+fi
+if [[ "$useri" == "5" ]]
+then
+    pacstrap /mnt base linux linux-firmware
+    genfstab -U /mnt >> /mnt/etc/fstab
+    ./koarch
+fi
+if [[ "$useri" == "6" ]]
+then
+    cp koarch /mnt
+    arch-chroot /mnt
+    pacman -S dialog
+    ./koarch
+fi
+if [[ "$useri" == "7" ]]
+then
+    touch t_dis.txt
+    ls /usr/share/zoneinfo > t_dis.txt
+    dialog --title "Please memorise your region from this list" --textbox t_dis.txt 30 70
+    region_vague=$(dialog --inputbox "Type your region from the previous list:" 0 0 4 3>&1 1>&2 2>&3 3>&-)
+    ls /usr/share/zoneinfo/$region_vague > t_dis.txt
+    dialog --title "Please memorise your region from this list" --textbox t_dis.txt 30 70
+    region_close=$(dialog --inputbox "Type your region from the previous list:" 0 0 4 3>&1 1>&2 2>&3 3>&-)
+    ln -sf /usr/share/zoneinfo/$region_vague/$region_close /etc/localtime
+    hwclock --systohc
+    touch /etc/locale.conf
+    echo "LANG=en_US.UTF-8" > /etc/locale.conf
+    pacman -S nano
+    pacman -S networkmanager
+    systemctl enable NetworkManager
+    echo en_US.UTF-8 UTF-8 >> /etc/locale.gen
+    locale-gen
+    rm t_dis.txt
+    ./koarch
+fi
+if [[ "$useri" == "8" ]]
+then
+    myhostname=$(dialog --inputbox "Type what you want this computer to be named" 0 0 4 3>&1 1>&2 2>&3 3>&-)
+    echo "127.0.0.1        localhost
+::1              localhost
+127.0.1.1        $myhostname.localdomain        $myhostname" > /etc/hosts
+    echo "$myhostname" > /etc/hostname
+    ./koarch
+fi
+if [[ "$useri" == "9" ]]
+then
+    archit=$(dialog --backtitle "Arch Installer - made by Konicks(GRI)" --title "Architecture selector" --menu "Please choose the bit count of your x86 chip" 0 0 4 \
+    1 "64 BIT" \
+    2 "32 BIT" 3>&1 1>&2 2>&3 3>&-)
+    efiornot=$(dialog --backtitle "Arch Installer - made by Konicks(GRI)" --title "Boot selector" --menu "Is your soon-to-be-arch computer legacy or EUFI?" 0 0 4 \
+        1 "Bios/Legacy" \
+        2 "UEFI" 3>&1 1>&2 2>&3 3>&-)
+    pacman -S grub
+    if [[ "$efiornot" == "2" ]]
+    then
+    	pacman -S efibootmgr
+    fi
+    if [[ "$efiornot" == "2" ]]
+    then
+    if [[ "$archit" == "1" ]]
+    then
+        grub-install --target=x86_64-efi --efi-directory=/boot
+        grub-mkconfig -o /boot/grub/grub.cfg
+    fi
+    if [[ "$archit" == "2" ]]
+    then
+        grub-install --target=i386-efi --efi-directory=/boot
+        grub-mkconfig -o /boot/grub/grub.cfg
+    fi
+    fi
+    if [[ "$efiornot" == "1" ]]
+    then
+    	lsblk
+    	read -p "PLEASE MEMORISE THE LOGICAL (sd*,nvme0n,hd*) NAME OF THE DRIVE YOU WANT TO INSTALL ARCH TO"
+    	lname=$(dialog --inputbox "Please insert the LOGICAL NAME of the drive below(sd*,nvme0n,hd*):" 0 0 4 3>&1 1>&2 2>&3 3>&-)
+    	grub-install --recheck /dev/$lname
+    	grub-mkconfig -o /boot/grub/grub.cfg
+   	fi
+    ./koarch
+fi
+if [[ "$useri" == "10" ]]
+then
+    passwd
+    ./koarch
+fi
+if [[ "$useri" == "11" ]]
+then
+    cp koarch /root
+    rm /koarch
+    pacman -Syu
+    umount -a
+    dialog --infobox "Please remove your installation medium after your computer shuts down" 30 70;sleep 10
+    reboot
+fi
+#%wheel ALL=(ALL) ALL
+if [[ "$useri" == "12" ]]
+then
+    myusername1=$(dialog --inputbox "Please enter your username: " 0 0 4 3>&1 1>&2 2>&3 3>&-)
+    echo "%wheel ALL=(ALL) ALL" >> /etc/sudoers
+    useradd -m -G wheel $myusername1
+    passwd $myusername1
+    ./koarch
+fi
+if [[ "$useri" == "13" ]]
+then
+	pacman -S sudo
+    pacman -S xf86-video-vesa
+    pacman -S xf86-video-intel
+    graphty=$(dialog --inputbox "Do you have an AMD(a) or a NVIDIA(n)?[a/n]" 0 0 4 3>&1 1>&2 2>&3 3>&-)
+    if [[ "$graphty" == "a" ]]
+    then
+        pacman -S xf86-video-ati
+    fi
+    if [[ "$graphty" == "n" ]]
+    then
+        pacman -S xf86-video-nvidia
+    fi
+    ./koarch
+fi
+
+if [[ "$useri" == "14" ]]
+then
+    pacman -S xorg xorg-server xorg-xinit xorg-server-utils
+    detype=$(dialog --clear --backtitle "Arch Installer - made by Konicks(GRI)" --title "DE selector" --menu "Please choose the DE to install:" 0 0 4 \
+    1 "Plasma" \
+    2 "Gnome" \
+    3 "xfce" 3>&1 1>&2 2>&3 3>&-)
+    if [[ "$detype" == "1" ]]
+    then
+        pacman -S plasma plasma-wayland-session
+        systemctl enable sddm.service
+    fi
+    if [[ "$detype" == "2" ]]
+    then
+        pacman -Sy gdm gnome gnome-extra
+        systemctl enable gdm.service
+    fi
+    if [[ "$detype" == "3" ]]
+    then
+        pacman -S xfce4 xfce4-goodies lightdm ligthdm-greeter
+        systemctl enable lightdm
+        systemctl enable sddm.service
+    fi
+    ./koarch
+fi
