@@ -206,7 +206,9 @@ then
     fi
     if [[ "$detype" == "2" ]]
     then
-        pacman -Sy gdm gnome gnome-extra
+        pacman -Sy gdm
+        pacman -Sy gnome
+        pacman -Sy gnome-extra
         systemctl enable gdm.service
     fi
     if [[ "$detype" == "3" ]]
