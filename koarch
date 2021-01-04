@@ -83,9 +83,10 @@ fi
 if [[ "$useri" == "6" ]]
 then
     cp koarch /mnt
+    echo pacman -Sy dialog > /mnt/root/.bashrc
+    echo ./koarch >> /mnt/root/.bashrc
+    echo 'echo "" > /root/.bashrc' >> /mnt/root/.bashrc
     arch-chroot /mnt
-    pacman -S dialog
-    ./koarch
 fi
 if [[ "$useri" == "7" ]]
 then
