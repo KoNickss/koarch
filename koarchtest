@@ -84,7 +84,6 @@ fi
 if [[ "$useri" == "6" ]]
 then
     cp koarch /mnt
-    echo pacman -Sy dialog > /mnt/root/.bashrc
     echo ./koarch >> /mnt/root/.bashrc
     echo 'echo "" > /root/.bashrc' >> /mnt/root/.bashrc
     arch-chroot /mnt
@@ -92,17 +91,18 @@ fi
 if [[ "$useri" == "7" ]]
 then
     cd /usr/share/zoneinfo
-    echo */ | tr " " "\n" > /reg
-    sed -e 's/$/ region/' -i /reg
+    echo */ | tr " " "\n" > ~/reg
+    sed -e 's/$/ region/' -i ~/reg
     declare -a regs
-    regs=(`cat /reg`)
-    region_vague=$(whiptail --title "Select your region" --menu "Select your region" 16 78 10 "${regs[@]}" 3>&1 1>&2 2>&3 3>&-)
+    regs=(`cat ~/reg`)
+    region_vague=$(whiptail --title "Select your region" --menu "Select your region" 0 0 0 "${regs[@]}" 3>&1 1>&2 2>&3 3>&-)
+    echo $region_vague
     cd /usr/share/zoneinfo/$region_vague
-    echo */ | tr " " "\n" > /reg
-    sed -e 's/$/ region/' -i /reg
+    echo * | tr " " "\n" > ~/reg
+    sed -e 's/$/ region/' -i ~/reg
     declare -a regs
-    regs=(`cat /reg`)
-    region_close=$(whiptail --title "Select your region" --menu "Select your region" 16 78 10 "${regs[@]}" 3>&1 1>&2 2>&3 3>&-)
+    regs=(`cat ~/reg`)
+    region_close=$(whiptail --title "Select your region" --menu "Select your region" 0 0 0 "${regs[@]}" 3>&1 1>&2 2>&3 3>&-)
     ln -sf /usr/share/zoneinfo/$region_vague/$region_close /etc/localtime
     hwclock --systohc
     touch /etc/locale.conf
@@ -111,13 +111,14 @@ then
     pacman -S networkmanager
     systemctl enable NetworkManager
     echo en_US.UTF-8 UTF-8 >> /etc/locale.gen
+    rm ~/reg
     locale-gen
-    rm t_dis.txt
+    cd /
     ./koarch
 fi
 if [[ "$useri" == "8" ]]
 then
-    myhostname=$(dialog --inputbox "Type what you want this computer to be named" 0 0 4 3>&1 1>&2 2>&3 3>&-)
+    myhostname=$(whiptail --inputbox "Type what you want this computer to be named" 0 0 4 3>&1 1>&2 2>&3 3>&-)
     echo "127.0.0.1        localhost
 ::1              localhost
 127.0.1.1        $myhostname.localdomain        $myhostname" > /etc/hosts
@@ -126,10 +127,10 @@ then
 fi
 if [[ "$useri" == "9" ]]
 then
-    archit=$(dialog --backtitle "Arch Installer - made by Konicks(GRI)" --title "Architecture selector" --menu "Please choose the bit count of your x86 chip" 0 0 4 \
-    1 "64 BIT" \
-    2 "32 BIT" 3>&1 1>&2 2>&3 3>&-)
-    efiornot=$(dialog --backtitle "Arch Installer - made by Konicks(GRI)" --title "Boot selector" --menu "Is your soon-to-be-arch computer legacy or EUFI?" 0 0 4 \
+    archit=$(whiptail --backtitle "Arch Installer - made by Konicks(GRI)" --title "Architecture selector" --menu "Please choose the bit count of your x86 chip" 0 0 4 \
+    64 "BIT" \
+    32 "BIT" 3>&1 1>&2 2>&3 3>&-)
+    efiornot=$(whiptail --backtitle "Arch Installer - made by Konicks(GRI)" --title "Boot selector" --menu "Is your soon-to-be-arch computer legacy or EUFI?" 0 0 4 \
         1 "Bios/Legacy" \
         2 "UEFI" 3>&1 1>&2 2>&3 3>&-)
     pacman -S grub
@@ -139,12 +140,12 @@ then
     fi
     if [[ "$efiornot" == "2" ]]
     then
-    if [[ "$archit" == "1" ]]
+    if [[ "$archit" == "64" ]]
     then
         grub-install --target=x86_64-efi --efi-directory=/boot
         grub-mkconfig -o /boot/grub/grub.cfg
     fi
-    if [[ "$archit" == "2" ]]
+    if [[ "$archit" == "32" ]]
     then
         grub-install --target=i386-efi --efi-directory=/boot
         grub-mkconfig -o /boot/grub/grub.cfg
@@ -152,9 +153,11 @@ then
     fi
     if [[ "$efiornot" == "1" ]]
     then
-    	lsblk
-    	read -p "PLEASE MEMORISE THE LOGICAL (sd*,nvme0n,hd*) NAME OF THE DRIVE (not partition) YOU WANT TO INSTALL ARCH TO"
-    	lname=$(dialog --inputbox "Please insert the LOGICAL NAME of the drive (not partition) below(sd*,nvme0n,hd*):" 0 0 4 3>&1 1>&2 2>&3 3>&-)
+    	lsblk | grep disk | cut -f 1 -d ' ' > ~/drvs
+        sed -e 's/$/ disk/' -i ~/drvs
+        declare -a lname
+        disks=(`cat ~/drvs`)
+        lname=$(whiptail --title "Select drive to install grub to" --menu "Select drive to install grub to" 16 78 10 "${disks[@]}" 3>&1 1>&2 2>&3 3>&-)
     	grub-install --recheck /dev/$lname
     	grub-mkconfig -o /boot/grub/grub.cfg
    	fi
@@ -168,7 +171,7 @@ fi
 #%wheel ALL=(ALL) ALL
 if [[ "$useri" == "11" ]]
 then
-    myusername1=$(dialog --inputbox "Please enter your username: " 0 0 4 3>&1 1>&2 2>&3 3>&-)
+    myusername1=$(whiptail --inputbox "Please enter your username: " 0 0 4 3>&1 1>&2 2>&3 3>&-)
     echo "%wheel ALL=(ALL) ALL" >> /etc/sudoers
     useradd -m -G wheel $myusername1
     passwd $myusername1
@@ -178,7 +181,7 @@ if [[ "$useri" == "12" ]]
 then
     pacman -S xf86-video-vesa
     pacman -S xf86-video-intel
-    graphty=$(dialog --inputbox "Do you have an AMD(a) or a NVIDIA(n)?[a/n]" 0 0 4 3>&1 1>&2 2>&3 3>&-)
+    graphty=$(whiptail --inputbox "Do you have an AMD(a) or a NVIDIA(n)?[a/n]" 0 0 4 3>&1 1>&2 2>&3 3>&-)
     if [[ "$graphty" == "a" ]]
     then
         pacman -S xf86-video-ati
@@ -193,23 +196,23 @@ fi
 if [[ "$useri" == "13" ]]
 then
     pacman -S xorg xorg-server xorg-xinit xorg-server-utils
-    detype=$(dialog --clear --backtitle "Arch Installer - made by Konicks(GRI)" --title "DE selector" --menu "Please choose the DE to install:" 0 0 4 \
-    1 "Plasma" \
-    2 "Gnome" \
-    3 "xfce" 3>&1 1>&2 2>&3 3>&-)
-    if [[ "$detype" == "1" ]]
+    detype=$(whiptail --clear --backtitle "Arch Installer - made by Konicks(GRI)" --title "DE selector" --menu "Please choose the DE to install:" 0 0 4 \
+    "Plasma" '' \
+    "Gnome" '' \
+    "Xfce" '' 3>&1 1>&2 2>&3 3>&-)
+    if [[ "$detype" == "Plasma" ]]
     then
         pacman -S plasma plasma-wayland-session
         systemctl enable sddm.service
     fi
-    if [[ "$detype" == "2" ]]
+    if [[ "$detype" == "Gnome" ]]
     then
         pacman -Sy gdm
         pacman -Sy gnome
         pacman -Sy gnome-extra
         systemctl enable gdm.service
     fi
-    if [[ "$detype" == "3" ]]
+    if [[ "$detype" == "Xfce" ]]
     then
         pacman -S xfce4 xfce4-goodies lightdm ligthdm-greeter
         systemctl enable lightdm
