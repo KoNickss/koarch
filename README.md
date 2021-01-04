@@ -1,6 +1,6 @@
 # koarch, a simple arch installer script written in bash.
 I make koarch mainly for myself, I had to install arch on a lot of computers at one point, so I stood up one night and wrote koarch to simplify my job greatly.
-The installation steps are presented as a list and you usually would want to run them in order, but steps can be skipped or ran in a different order to fit your arch needs. You can go through the whole installation process without leaving the installer once (exceptions of course are when you chroot and reboot, just run `./koarch` to get back to bussiness) from ISO to complete GUI-install. I made it so it can support many computers, rn it can install arch on both x86_64 and x86_32 computers with either UEFI or Legacy boot protocols.
+The installation steps are presented as a list and you usually would want to run them in order, but steps can be skipped or ran in a different order to fit your arch needs. You can go through the whole installation process without leaving the installer once, from ISO to complete GUI-install. I made it so it can support many computers, rn it can install arch on both x86_64 and x86_32 computers with either UEFI or Legacy boot protocols.
 ## getting koarch
 koarch can be easily downloaded from my webapp, just connect your soon-to-be-arch computer to the internet via ethernet or usb android thetering and run:
 ### `pacman -S wget dialog ; wget koarch.netlify.app/koarch ; chmod +x koarch ; ./koarch`
