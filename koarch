@@ -195,7 +195,6 @@ fi
 
 if [[ "$useri" == "14" ]]
 then
-	pacman-key --refresh-keys
     pacman -S xorg xorg-server xorg-xinit xorg-server-utils
     detype=$(dialog --clear --backtitle "Arch Installer - made by Konicks(GRI)" --title "DE selector" --menu "Please choose the DE to install:" 0 0 4 \
     1 "Plasma" \
