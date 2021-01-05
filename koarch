@@ -26,12 +26,10 @@ then
 fi
 if [[ "$useri" == "A" ]]
 then
-    touch torun
-    whiptail --inputbox "Insert the command below:" 0 0 4 2>torun
-    chmod 755 torun
-    ./torun
+    
+    com=$(whiptail --inputbox "Insert the command below:" 3>&1 1>&2 2>&3 3>&-)
+    $com
     read -p "PRESS ANY KEY TO CONTINUE"
-    rm torun
     ./koarch
 fi
 if [[ "$useri" == "2" ]]
