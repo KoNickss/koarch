@@ -186,14 +186,15 @@ then
     fi
     if [[ "$graphty" == "n" ]]
     then
-        pacman -S xf86-video-nvidia
+        pacman -S xf86-video-nouveau
     fi
     ./koarch
 fi
 
 if [[ "$useri" == "13" ]]
 then
-    pacman -S xorg xorg-server xorg-xinit xorg-server-utils
+    pacman -S xorg
+    pacman -S xorg-server xorg-xinit xorg-server-utils
     detype=$(whiptail --clear --backtitle "Arch Installer - made by Konicks(GRI)" --title "DE selector" --menu "Please choose the DE to install:" 0 0 4 \
     "Plasma" '' \
     "Gnome" '' \
@@ -212,7 +213,7 @@ then
     fi
     if [[ "$detype" == "Xfce" ]]
     then
-        pacman -S xfce4 xfce4-goodies lightdm ligthdm-greeter
+        pacman -S xfce4 xfce4-goodies lightdm
         systemctl enable lightdm
         systemctl enable sddm.service
     fi
