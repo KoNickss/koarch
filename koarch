@@ -18,7 +18,6 @@ B "[Fix for bothched packages] Update pacman keys" \
 
 if [[ "$useri" == "1" ]]
 then
-    pacman -S networkmanager
     systemctl enable NetworkManager
     systemctl start NetworkManager
     nmtui
